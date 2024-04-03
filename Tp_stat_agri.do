@@ -141,7 +141,7 @@
 		
 		** representation du diagramme en barre pour chaque culture
 		
-		/*graph bar ren_moy_dep if departement==1, over(culture) by(departements)
+		graph bar ren_moy_dep if departement==1, over(culture) by(departements)
 		graph export "ren_groupe1.png", replace
 		graph bar ren_moy_dep if departement==2, over(culture) by(departements)
 		graph export "ren_groupe2.png", replace
@@ -152,7 +152,7 @@
 		graph bar ren_moy_dep if departement==5, over(culture) by(departements)
 		graph export "ren_groupe5.png", replace
 		graph bar ren_moy_dep if departement==6, over(culture) by(departements)
-		graph export "ren_groupe6.png", replace*/
+		graph export "ren_groupe6.png", replace
 		restore
 		
 	***** 12. Comparer la diversite des cultures dans les diferentes regions. Quelles sont les zones les plus specialisées et la relation avec le rendement en arachide
