@@ -1,3 +1,65 @@
+* 1. importer la base 5_production_final
+use "5_production_final.dta", clear
+
+* 2. Vérifier l’existence de doublons
+duplicates report
+
+* 3. Quelles sont les céréales cultivées?
+tab culture
+
+* 4. Y a-t-il des superficies nulles? des productions aberrantes?
+codebook superficie
+gen rend = production_kg/superficie
+graph box rend, title("Boxplot de la variable") ylabel()
+
+* 5. Imputer ces variables si nécessaire et documenter la méthode d’imputation
+bys culture: egen Q1= pctile(rend), p(25)
+		bys culture: egen Q3= pctile(rend), p(75)
+		bys culture: egen seuilmax=min(max(rend),Q3+1.5*(Q3-Q1))
+		bys culture: egen seuilmin=max(min(rend),Q1-1.5*(Q3-Q1))
+		replace rend = cond(rend > seuilmax| rend< seuilmin | rend==0, ., rend)
+		replace production_kg = cond(rend == ., ., production_kg)
+		
+		bys communes culture : egen prod_tot = sum(production_kg)
+		bys communes culture : egen sup_tot = sum(superficie)
+		gen rend_moy = prod_tot/sup_tot
+		drop prod_tot sup_tot
+		replace rend = cond(rend == ., rend_moy, rend)
+		replace production_kg = cond(production_kg == ., superficie*rend, production_kg)	
+		
+		bys departements culture : egen prod_tot = sum(production_kg)
+		bys departements culture : egen sup_tot = sum(superficie)
+		gen rend_dpt = prod_tot/sup_tot
+		drop prod_tot sup_tot
+		replace rend = cond(rend == 0, rend_dpt, rend)
+		replace production_kg = cond(production_kg == 0, superficie*rend, production_kg)	
+
+		bys regions culture : egen prod_tot = sum(production_kg)
+		bys regions culture : egen sup_tot = sum(superficie)
+		gen rend_rg = prod_tot/sup_tot
+		drop prod_tot sup_tot
+		replace rend = cond(rend == 0, rend_rg, rend)
+		replace production_kg = cond(production_kg == 0, superficie*rend, production_kg)	
+
+		bys culture : egen prod_tot = sum(production_kg)
+		bys culture : egen sup_tot = sum(superficie)
+		gen rend_pop = prod_tot/sup_tot
+		drop prod_tot sup_tot
+		replace rend = cond(rend == 0, rend_pop, rend)
+		replace production_kg = cond(production_kg == 0, superficie*rend, production_kg)
+
+* 6. Agréger les superficies et production par ménage et par culture
+* Par ménage
+bys id_men : egen sup_men = sum(superficie)
+bys id_men : egen prod_men = sum(production_kg)
+
+* Par culture
+bys culture : egen sup_cult = sum(superficie)
+bys culture : egen prod_cult = sum(production_kg)
+
+* 7. Enregistrer la base ainsi apurée en lui donnant un nom distinct
+save "5_production_final_apuree.dta", replace
+
 * 8. Calculer pour chaque ménage l’indice de diversité des cultures
 gen poids = superficie / sup_men
 gen valeur = -poids * (ln(poids) / ln(2))
