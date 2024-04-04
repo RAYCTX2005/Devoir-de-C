@@ -1,3 +1,43 @@
+* 8. Calculer pour chaque ménage l’indice de diversité des cultures
+gen poids = superficie / sup_men
+gen valeur = -poids * (ln(poids) / ln(2))
+bys id_men : egen indice = sum(valeur)
+
+* 9. Calculer pour chaque ménage les rendements des différentes cultures
+gen rend_moy_cult = production_kg / superficie // dans chaque ménage il n'y a pas plusieurs occurences d'une même culture
+sort id_men
+
+* 10. Calculer la part de l’arachide dans les superficies emblavées. Cette part est-elle différente selon que le ménage emblave plus de 5ha? Utiliser la commande ttest pour tester la significativité de cette différence.
+egen sup_tot = sum(superficie)
+bys culture: egen sup_culture = sum(superficie)
+bys culture: gen part = sup_culture / sup_tot
+table culture part if culture == 7 // 38,86%
+
+bys id_men: egen sup_men_cults = sum(superficie)
+gen part_cult_men = superficie / sup_men_cults
+gen groupe = 1 if sup_men_cults <= 5
+replace groupe = 0 if sup_men_cults > 5
+ttest part_cult_men if culture == 7, by(groupe)
+// La part de la superficie emblavées allouée à l'arachide est plus grande en moyenne si le ménage emblave plus de 5ha au total
+
+* 11. Calculer pour chaque département, la part des différentes spéculations dans les superficies emblavées et produire le diagramme circulaire correspondant.
+bys departements: egen sup_dep = sum(superficie)
+bys departements culture: egen sup_dep_cult = sum(superficie)
+bys departements culture: gen part_sup_spec = sup_dep_cult / sup_dep
+sort departements culture
+
+* Representation et exportation des diagrammes circulaire
+graph pie part_sup_spec, over(culture) by(departements)
+
+* 12. Calculer pour chaque département les rendements des différentes cultures. Exporter le tableau dans un fichier Excel
+bys departements culture: egen pro_dep = sum(production_kg)     
+gen ren_moy_dep = pro_dep / sup_dep_cult
+
+preserve
+keep if inlist(culture, 1, 7, 8) // Sélection des cultures : céréales, arachide, niébé
+collapse ren_moy_dep, by(departements culture)
+export excel "tableau_rendements.xlsx", sheet("Rendements par département") replace firstrow()
+restore
 * 13. Visualiser la diversité des cultures dans les différentes régions et la relation avec le rendement de l’arachide
 bys regions: egen sup_reg = sum(superficie)
 bys regions culture: egen sup_cult_reg = sum(superficie)
@@ -44,6 +84,7 @@ gen rend_prov = prod_prov / sup_pro
 br culture provenance rend_prov
 bys zone provenance: egen sup_zone = sum(superficie)
 bys zone provenance: egen prod_zone = sum(production_kg)
+
 gen rend_zone = prod_zone / sup_zone
 br zone provenance rend_zone
 
@@ -56,4 +97,18 @@ gen use_certified = cond(types_semences == 2, int_uti_sem, .)
 regress rend_arachide indice int_uti use_certified
 
 * 18. Reprendre la régression en ajoutant d’autres variables explicatives pertinentes
-regress rend_arachide indice int_uti_sem use_certified type_engrais // Ajouter les autres variables pertinentes selon vos données
+regress rend_arachide indice int_uti_sem use_certified type_engrais
+bys regions : egen indice_reg=sum(valeur_reg)
+		graph bar indice_reg, over(regions)
+		graph export "diversite_region.png", replace
+		
+		bys regions culture: egen pro_cult_reg=sum(production_kg)
+		gen ren_reg=pro_cult_reg/sup_cult_reg
+		preserve
+		keep if culture==7
+		twoway(scatter ren_reg indice_reg, sort mlabel(regions))
+		graph export "relation_rend.png", replace
+		restore
+	   graph bar rend_sem , over (types_semences)
+	   graph export "semence.png"
+	   restore
