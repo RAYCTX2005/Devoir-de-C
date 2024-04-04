@@ -154,8 +154,12 @@
 		graph bar ren_moy_dep if departement==6, over(culture) by(departements)
 		graph export "ren_groupe6.png", replace
 		restore
-		
-	***** 12. Comparer la diversite des cultures dans les diferentes regions. Quelles sont les zones les plus specialisées et la relation avec le rendement en arachide
+
+
+**************************************************
+**********2.3 Analyse des intrants 
+**************************************************
+	***** 13. Comparer la diversite des cultures dans les diferentes regions. Quelles sont les zones les plus specialisées et la relation avec le rendement en arachide
 		bys regions: egen sup_reg=sum(superficie)
 		bys regions culture: egen sup_cult_reg=sum(superficie)
 		gen poids_reg_culte=sup_cult_reg/sup_reg
@@ -175,7 +179,7 @@
 
 		
 		
-	* 13. Comparer l’utilisation de l’engrais entre l’arachide et le mil. Pourquoi est-ce que cet indicateur est plus ´elev´e pour l’arachide? Tester 		statistiquement, pour l’arachide, la correlation entre l’intensité d’utilisation de l’engrais et le rendement à l’hectare. Conclure
+	* 14. Comparer l’utilisation de l’engrais entre l’arachide et le mil. Pourquoi est-ce que cet indicateur est plus ´elev´e pour l’arachide? Tester 		statistiquement, pour l’arachide, la correlation entre l’intensité d’utilisation de l’engrais et le rendement à l’hectare. Conclure
 
 // Fusion de la base 5_production_final et 7_engrais_final_long en utilisant l'id_men et la culture comme code 
 bys culture: egen sup_tota=sum(superficie)
@@ -214,7 +218,7 @@ save "5_production_final1.dta", replace
 
 
 
-***14. Analyser la provenance des semences pour chaque spéculation. Commenter également les résultats par zone.
+***15. Analyser la provenance des semences pour chaque spéculation. Commenter également les résultats par zone.
 	use "6_semences_final_long", clear
 	gen provenance = "Coopératives semencières" if strmatch(fournisseur1, "Coopératives semencières")| strmatch(fournisseur2, "Coopératives semencières")
 	replace provenance = "Fournisseurs d'intrants" if strmatch(fournisseur1,"Fournisseurs d'intrants")
@@ -250,7 +254,7 @@ order zone-types_semences qte_kg_S-fournisseurs_other_S provenance
 
 
 
- ***15. Analyser les rendements d’arachide par source de provenance des semences. L’utilisation de semences certifi´ees implique-t-elle l’atteinte de meilleurs rendements? Commenter ´egalement les r´esultats par zone
+ ***16. Analyser les rendements d’arachide par source de provenance des semences. L’utilisation de semences certifi´ees implique-t-elle l’atteinte de meilleurs rendements? Commenter ´egalement les r´esultats par zone
        
 	    sort id_men
         merge m:m id_men using "5_production_final.dta"
@@ -312,7 +316,7 @@ order zone-types_semences qte_kg_S-fournisseurs_other_S provenance
 
 
  
-***16. Analyser les déterminants du rendement d’arachide par une régression linéaire où les variables explicatives sont la diversit´e culturale, l’utilisation de l’engrais et l’utilisation des semences certifiées.
+***17. Analyser les déterminants du rendement d’arachide par une régression linéaire où les variables explicatives sont la diversit´e culturale, l’utilisation de l’engrais et l’utilisation des semences certifiées.
 drop _merge
 merge m:m id_men using "1_menage_final"
 move zone regions
@@ -323,7 +327,7 @@ gen int_uti_sem = qte_kg_S/superficie
 gen use_certified = cond(types_semences == 2, int_uti_sem, .)
 regress rend_arachide  indice int_uti use_certified
 
-***17. Reprendre la r´egression en ajoutant d’autres variables explicatives que vous jugez pertinentes. Que trouvez-vous?
+***18. Reprendre la r´egression en ajoutant d’autres variables explicatives que vous jugez pertinentes. Que trouvez-vous?
 regress rend_arachide indice int_uti_sem use_certified type_engrais***2.2 Analyse de la productivité
 
 			bys regions : egen indice_reg=sum(valeur_reg)
