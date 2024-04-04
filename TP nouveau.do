@@ -22,11 +22,19 @@ bys code: egen qte_kg_arach = sum(qte_kg) if culture == 7
 gen int_uti = qte_kg_arach / superficie
 regress int_uti rend_moy_cult if culture == 7
 
-* 15. Visualiser la provenance des semences pour chaque spéculation et commenter les résultats par zone
+* 15. Visualiser la provenance des semences pour chaque spéculation et commenter les résultats par zones
 use "6_semences_final_long", clear
 gen provenance = "Coopératives semencières" if strmatch(fournisseur1, "Coopératives semencières") | strmatch(fournisseur2, "Coopératives semencières")
 replace provenance = "Fournisseurs d'intrants" if strmatch(fournisseur1, "Fournisseurs d'intrants")
-// Suite à compléter en fonction de la définition de provenance dans vos données
+replace provenance = "Gouvernement" if strmatch(fournisseur1, "Gouvernement")
+replace provenance = "Marché local" if strmatch(fournisseur1, "Marché local") | strmatch(fournisseur2, "Marché local")
+replace provenance = "Multiplicateurs semenciers" if strmatch(fournisseur1, "Multiplicateurs semenciers") | strmatch(fournisseur2, "Multiplicateurs semenciers") | strmatch(fournisseur3, "Multiplicateurs semenciers")
+replace provenance = "ONG" if strmatch(fournisseur1, "ONG")
+replace provenance = "Producteurs" if strmatch(fournisseur1, "Producteurs") | strmatch(fournisseur2, "Producteurs")
+replace provenance = "Projets et programmes" if strmatch(fournisseur1, "Projets et programmes")
+replace provenance = "Autre" if strmatch(provenance, "")
+// Analyse de la provenance des semences
+tab provenance
 
 * 16. Visualiser les rendements d’arachide par source de provenance des semences et analyser l'effet des semences certifiées par zone
 merge m:m id_men using "5_production_final.dta"
