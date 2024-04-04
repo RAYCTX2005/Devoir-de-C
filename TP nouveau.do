@@ -1,3 +1,14 @@
+*********************************************
+********* Title : TP2 - ISEP2 - Statistiques Grandes cultures
+********* Fichiers : "1_menage_final","7_engrais_final_long","6_semences_final_long","5_production_final"
+********* dernière modification : Avril 2024
+********* Auteurs : RAHERINASOLO Ange Emilson Rayan et FOGWONG Djoufack Sarah Laure (rayanemil20@gmail.com/ syrassoul@gmail.com)
+*********************************************
+*___________________________________________________________________________________________________________________________________
+
+**************************************************
+**********2.1 Préparation et nettoyage des données
+**************************************************
 * 1. importer la base 5_production_final
 use "5_production_final.dta", clear
 
@@ -60,6 +71,10 @@ bys culture : egen prod_cult = sum(production_kg)
 * 7. Enregistrer la base ainsi apurée en lui donnant un nom distinct
 save "5_production_final_apuree.dta", replace
 
+*******************************************
+**********2.2 Analyse de la productivité
+*******************************************
+
 * 8. Calculer pour chaque ménage l’indice de diversité des cultures
 gen poids = superficie / sup_men
 gen valeur = -poids * (ln(poids) / ln(2))
@@ -100,6 +115,11 @@ keep if inlist(culture, 1, 7, 8) // Sélection des cultures : céréales, arachi
 collapse ren_moy_dep, by(departements culture)
 export excel "tableau_rendements.xlsx", sheet("Rendements par département") replace firstrow()
 restore
+
+**************************************************
+**********2.3 Analyse des intrants 
+**************************************************
+
 * 13. Visualiser la diversité des cultures dans les différentes régions et la relation avec le rendement de l’arachide
 bys regions: egen sup_reg = sum(superficie)
 bys regions culture: egen sup_cult_reg = sum(superficie)
@@ -142,11 +162,10 @@ tab provenance
 merge m:m id_men using "5_production_final.dta"
 bys provenance culture: egen sup_prov = sum(superficie)
 bys provenance culture: egen prod_prov = sum(production_kg)
-gen rend_prov = prod_prov / sup_pro
+gen rend_prov = prod_prov / sup_prov
 br culture provenance rend_prov
 bys zone provenance: egen sup_zone = sum(superficie)
 bys zone provenance: egen prod_zone = sum(production_kg)
-
 gen rend_zone = prod_zone / sup_zone
 br zone provenance rend_zone
 
@@ -157,7 +176,6 @@ rename rend rend_arachide
 gen int_uti_sem = qte_kg_S / superficie
 gen use_certified = cond(types_semences == 2, int_uti_sem, .)
 regress rend_arachide indice int_uti use_certified
-
 * 18. Reprendre la régression en ajoutant d’autres variables explicatives pertinentes
 regress rend_arachide indice int_uti_sem use_certified type_engrais
 bys regions : egen indice_reg=sum(valeur_reg)
